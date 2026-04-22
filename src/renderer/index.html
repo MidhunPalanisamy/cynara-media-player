@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cynara</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <main class="player-section">
+            <header class="top-bar">
+                <div>
+                    <p class="eyebrow">Desktop Video Player</p>
+                    <h1>Cynara</h1>
+                </div>
+                <div class="header-actions">
+                    <button id="upload-files-btn" class="mini-btn" type="button">+ Files</button>
+                    <button id="upload-folder-btn" class="mini-btn" type="button">+ Folder</button>
+                </div>
+            </header>
+
+            <section class="video-shell" id="video-shell" aria-label="Video player">
+                <div class="video-wrapper" id="video-wrapper">
+                    <video id="main-player" preload="metadata" playsinline>
+                        Your browser does not support the video tag.
+                    </video>
+                    
+                    <div id="empty-state" class="empty-state">
+                        <strong>Select a video from the sidebar to start watching</strong>
+                    </div>
+                    
+                    <div class="player-controls-container" id="player-controls">
+                        <div class="center-controls">
+                            <button id="prev-btn" class="icon-btn" type="button" aria-label="Previous video"><img src="../../assets/prev.png" alt="Prev"></button>
+                            <button id="rewind-btn" class="icon-btn" type="button" aria-label="Rewind 10 seconds"><img src="../../assets/replay-10.png" alt="-10s"></button>
+                            <button id="play-btn" class="play-btn" type="button" aria-label="Play or pause"><img id="play-img" src="../../assets/play.png" alt="Play"></button>
+                            <button id="forward-btn" class="icon-btn" type="button" aria-label="Forward 10 seconds"><img src="../../assets/forward-10.png" alt="+10s"></button>
+                            <button id="next-btn" class="icon-btn" type="button" aria-label="Next video"><img src="../../assets/next.png" alt="Next"></button>
+                        </div>
+
+                        <div class="bottom-controls">
+                            <div class="timeline-row">
+                                <span id="current-time">0:00</span>
+                                <input id="seek-slider" class="seek-slider" type="range" min="0" max="0" value="0" step="0.1" aria-label="Seek">
+                                <span id="duration">0:00</span>
+                            </div>
+
+                            <div class="controls-row">
+                                <div class="left-group">
+                                    <button id="mute-btn" class="mini-btn" type="button">Mute</button>
+                                    <input id="volume-slider" type="range" min="0" max="1" value="1" step="0.05" aria-label="Volume">
+                                </div>
+
+                                <div class="right-group">
+                                    <div class="settings-container">
+                                        <button id="settings-btn" class="mini-btn icon-only" type="button" aria-label="Settings"><img src="../../assets/settings.png" alt="Settings"></button>
+                                        
+                                        <div id="settings-panel" class="settings-panel hidden">
+                                            <div class="settings-item">
+                                                <label>Speed</label>
+                                                <select id="speed-select" class="clean-select">
+                                                    <option value="0.5">0.5x</option>
+                                                    <option value="0.75">0.75x</option>
+                                                    <option value="1" selected>1x</option>
+                                                    <option value="1.25">1.25x</option>
+                                                    <option value="1.5">1.5x</option>
+                                                    <option value="2">2x</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="settings-item">
+                                                <label>Audio</label>
+                                                <select id="audio-select" class="clean-select">
+                                                    <option>Audio</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="settings-item">
+                                                <label>Subtitles</label>
+                                                <div class="subtitle-wrap">
+                                                    <select id="subtitle-select" class="clean-select">
+                                                        <option value="off">Subs</option>
+                                                    </select>
+                                                    <button id="load-subtitle-btn" class="mini-btn tiny" type="button">+</button>
+                                                    <input id="subtitle-file" type="file" accept=".vtt,.srt" hidden>
+                                                </div>
+                                            </div>
+
+                                            <div class="settings-item">
+                                                <label>Boost</label>
+                                                <select id="boost-select" class="clean-select">
+                                                    <option value="1.0">Normal (100%)</option>
+                                                    <option value="1.3">Boost (130%)</option>
+                                                    <option value="1.6">High (160%)</option>
+                                                    <option value="2.0">Max (200%)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="settings-item">
+                                                <label>Ratio</label>
+                                                <select id="ratio-select" class="clean-select">
+                                                    <option value="contain">Fit</option>
+                                                    <option value="cover">Zoom</option>
+                                                    <option value="fill">Stretch</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button id="fullscreen-btn" class="mini-btn icon-only" type="button" aria-label="Fullscreen">
+                                        <img id="fullscreen-img" src="../../assets/full-screen.png" alt="FS">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="player-info" aria-live="polite">
+                <div class="info-text">
+                    <h2 id="now-playing-title">Select a video</h2>
+                    <p id="now-playing-file">Ready to watch</p>
+                </div>
+                <div class="controls-hint">
+                    <span><span class="hint-key">Space</span> Play</span>
+                    <span><span class="hint-key">F</span> Fullscreen</span>
+                    <span><span class="hint-key">M</span> Mute</span>
+                </div>
+            </section>
+        </main>
+
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <p class="eyebrow">Library</p>
+                    <h2>Videos</h2>
+                </div>
+                <div class="sidebar-actions">
+                    <button id="reset-library-btn" class="mini-btn danger" type="button">Reset</button>
+                    <button id="clear-search" class="mini-btn" type="button">Clear</button>
+                </div>
+            </div>
+
+            <label class="search-box">
+                <span>Search</span>
+                <input id="video-search" type="search" placeholder="Video title or file name" autocomplete="off">
+            </label>
+
+            <div class="list-meta">
+                <span id="video-count">0 videos</span>
+                <span id="search-status">All videos</span>
+            </div>
+
+            <div id="video-list" class="video-list">
+                <div class="loading-card">Upload some videos to start</div>
+            </div>
+        </aside>
+    </div>
+
+    <div id="toast">Ready</div>
+
+    <script src="script.js"></script>
+</body>
+</html>

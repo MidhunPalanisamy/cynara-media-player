@@ -1,0 +1,15 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+dist/
+release/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# App data
+library.json
