@@ -1,4 +1,5 @@
 const repo = "MidhunPalanisamy/velmora-media-player";
+let pendingDownload = null;
 
 function detectOS() {
     const userAgent = window.navigator.userAgent;
@@ -13,7 +14,6 @@ async function fetchReleases() {
     const osDetect = document.getElementById("os-detect");
     const os = detectOS();
 
-    // Update OS Detection text
     if (os === "mac") {
         osDetect.innerText = "Detected macOS - Recommended: .dmg";
         downloadBtn.innerText = "Download for Mac";
@@ -44,7 +44,6 @@ async function fetchReleases() {
             </div>
         `;
         
-        // Fallback for download button
         downloadBtn.onclick = () => {
             window.open(`https://github.com/${repo}/releases`, "_blank");
         };
@@ -61,17 +60,66 @@ function setupDownloadButton(releases, os) {
         let asset;
         if (os === "mac") {
             asset = latest.assets.find(a => a.name.toLowerCase().endsWith(".dmg"));
+            if (asset) showMacNote(asset.browser_download_url);
         } else if (os === "win") {
             asset = latest.assets.find(a => a.name.toLowerCase().endsWith(".exe"));
+            if (asset) showWindowsNote(asset.browser_download_url);
         }
 
-        if (asset) {
-            window.location.href = asset.browser_download_url;
-        } else {
-            // If no direct match or OS is 'other', scroll to releases
+        if (!asset) {
             document.getElementById("releases").scrollIntoView({ behavior: 'smooth' });
         }
     };
+}
+
+function showMacNote(url) {
+    pendingDownload = url;
+    const note = document.getElementById("downloadNote");
+    const text = document.getElementById("noteText");
+
+    text.innerHTML = `
+        <p>macOS may block the app on first launch because it's from an unverified developer.</p>
+        <b>Method 1 (Recommended)</b>
+        <ul>
+            <li>Right-click the app in Applications</li>
+            <li>Select "Open"</li>
+            <li>Click "Open" again on the warning dialog</li>
+        </ul>
+        <b>Method 2 (Terminal)</b>
+        <p>If the above doesn't work, run this command:</p>
+        <code>xattr -rd com.apple.quarantine /Applications/Velmora.app</code>
+    `;
+
+    note.classList.remove("hidden");
+}
+
+function showWindowsNote(url) {
+    pendingDownload = url;
+    const note = document.getElementById("downloadNote");
+    const text = document.getElementById("noteText");
+
+    text.innerHTML = `
+        <p>Windows SmartScreen may show a security warning.</p>
+        <b>How to bypass:</b>
+        <ul>
+            <li>Click "More info" in the blue box</li>
+            <li>Click "Run anyway"</li>
+        </ul>
+    `;
+
+    note.classList.remove("hidden");
+}
+
+function closeNote() {
+    document.getElementById("downloadNote").classList.add("hidden");
+    if (pendingDownload) {
+        const url = pendingDownload;
+        pendingDownload = null;
+        // Small delay for better UX after clicking "Got it"
+        setTimeout(() => {
+            window.location.href = url;
+        }, 300);
+    }
 }
 
 function renderReleases(releases) {
@@ -116,13 +164,11 @@ function renderReleases(releases) {
         releasesList.appendChild(releaseElement);
     });
 
-    // Re-initialize icons for dynamically added content
     if (window.lucide) {
         window.lucide.createIcons();
     }
 }
 
-// Initialize
 document.addEventListener("DOMContentLoaded", () => {
     fetchReleases();
     if (window.lucide) {

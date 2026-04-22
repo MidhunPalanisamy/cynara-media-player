@@ -30,6 +30,19 @@
             <div class="hero-actions">
                 <button id="downloadBtn" class="primary-btn">Download for your OS</button>
                 <p id="os-detect" class="os-hint">Detecting your system...</p>
+                <p class="disclaimer">Velmora is safe. Warnings may appear as the app is not yet code-signed.</p>
+            </div>
+
+            <!-- OS Specific Download Note -->
+            <div id="downloadNote" class="note hidden">
+                <div class="note-content">
+                    <div class="note-header">
+                        <i data-lucide="shield-check" class="shield-icon"></i>
+                        <h3>Before Opening</h3>
+                    </div>
+                    <div id="noteText" class="note-body"></div>
+                    <button class="close-btn" onclick="closeNote()">Got it, start download</button>
+                </div>
             </div>
         </div>
         <div class="hero-visual">
