@@ -1,38 +1,59 @@
 {
   "name": "velmora",
   "productName": "Velmora",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "A robust local video library player",
   "author": "Midhun Palanisamy",
   "main": "src/main.js",
+
   "dependencies": {
     "express": "^4.18.2",
     "open": "^8.4.2"
   },
+
   "devDependencies": {
     "electron": "^34.3.0",
     "electron-builder": "^25.1.8"
   },
+
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
+
   "build": {
     "appId": "com.velmora.player",
     "productName": "Velmora",
+
     "publish": null,
+
+    "artifactName": "Velmora-${version}-${os}.${ext}",
+
     "mac": {
-      "target": "dmg",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
       "icon": "assets/velmora.icns",
       "category": "public.app-category.video"
     },
+
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "assets/velmora.ico"
     },
+
     "directories": {
       "output": "dist"
     },
+
     "files": [
       "src/**/*",
       "assets/**/*"
