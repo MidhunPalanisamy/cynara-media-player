@@ -1,71 +1,107 @@
-# 🎬 Velmora
+# Velmora
 
-Velmora is a robust, production-grade desktop video player built with Electron. It features a smart media library system, real-time folder watching, and advanced playback controls including a VLC-style audio boost.
+Watch Local. Feel Cinematic.
 
-## ✨ Features
+Velmora is a production-quality desktop video player built with Electron, designed specifically for users who value a clean and immersive local media playback experience. It combines a modern, cinematic interface with robust media management features.
 
-- **📁 Smart Media Library**: Automatically organizes your videos into playlists based on folders.
-- **🔄 Real-Time Sync**: Watchers monitor your folders and update the library instantly when files are added, removed, or renamed.
-- **🔊 Audio Boost**: VLC-style audio amplification up to 200% with built-in dynamics compression to prevent distortion.
-- **📐 Universal Aspect Ratio**: Automatic scaling (`object-fit: contain`) ensures all videos, including vertical ones, display perfectly without cropping.
-- **💾 Persistent Storage**: Remembers your library and settings across restarts using JSON-based persistence.
-- **🔍 Advanced Search**: Search by video title or playlist name; matching playlists are highlighted and automatically expanded.
-- **⌨️ Media Hotkeys**: Standard playback controls (Space for play/pause, Arrows for seeking, etc.).
-- **⚙️ Professional UI**: A clean, modern dark theme with red accents and intuitive icon-based controls.
+## Features
 
-## 🚀 Getting Started
+- Folder-based playlists: Automatically organizes media by treating your local folders as instant playlists.
+- Cinematic user interface: A distraction-free environment that prioritizes your content.
+- Comprehensive track support: Full compatibility with multiple audio tracks and subtitles (SRT, VTT).
+- Advanced playback controls: Precision seeking, speed adjustment, and aspect ratio management.
+- Audio boost: VLC-style amplification up to 200% with integrated dynamics compression.
+- Persistent library: Remembers your media folders and settings across sessions.
 
-### Prerequisites
+## Download
 
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
-- npm (comes with Node.js)
+Velmora is distributed through GitHub Releases. You can find the latest version and all previous releases at the link below:
 
-### Installation
+https://github.com/MidhunPalanisamy/velmora-media-player/releases
 
-1. Clone the repository or download the source code.
+Direct download options:
+- macOS: Download the .dmg file for Apple Silicon or Intel systems.
+- Windows: Download the .exe installer for 64-bit systems.
+
+## Installation
+
+### macOS
+
+1. Download the latest .dmg file.
+2. Open the .dmg and drag the Velmora app into your Applications folder.
+3. Because Velmora is not yet code-signed, you may need to right-click the app and select "Open" on the first launch to bypass Gatekeeper.
+
+### Windows
+
+1. Download the latest .exe installer.
+2. Run the installer and follow the on-screen instructions.
+3. If Windows SmartScreen displays a warning, click "More info" and then select "Run anyway" to proceed with the installation.
+
+## Usage
+
+- Add Media: Use the "Add Folder" option to link your local media directories. Velmora will automatically generate playlists based on the folder structure.
+- Playback: Select any video to begin playback. The cinematic UI will automatically hide controls during playback to minimize distractions.
+- Subtitles and Audio: Use the on-screen controls to switch between available subtitle files and audio tracks.
+- Shortcuts: Utilize standard media keys or keyboard shortcuts (Space for Play/Pause, Arrow keys for seeking) for efficient control.
+
+## Screenshots
+
+(Add screenshots here)
+
+## Tech Stack
+
+- Electron
+- Node.js
+- HTML5 / CSS3 / JavaScript (Vanilla)
+
+## Development Setup
+
+To set up the project locally for development, follow these steps:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/MidhunPalanisamy/velmora-media-player.git
+   ```
+
 2. Navigate to the project directory:
    ```bash
-   cd Vid_player
+   cd velmora-media-player
    ```
-3. Install the dependencies:
+
+3. Install dependencies:
    ```bash
    npm install
    ```
 
-### Running the App
+4. Start the application in development mode:
+   ```bash
+   npm start
+   ```
 
-Start the application in development mode:
+## Build
+
+To generate production-ready binaries, use the build command:
+
 ```bash
-npm start
+npm run build
 ```
 
-## 📦 Building for Production
+The output for your current operating system will be generated in the `dist/` directory.
 
-To package the application for distribution:
+## Releases
 
-### For macOS (.dmg)
-```bash
-npm run build -- --mac
-```
+Velmora uses semantic versioning. New releases are automatically built and published via GitHub Actions whenever a new tag is pushed to the repository.
 
-### For Windows (.exe)
-```bash
-npm run build -- --win
-```
+## Website
 
-*Note: Windows builds on macOS require `wine` to be installed.*
+Visit the official landing page for Velmora:
 
-## 🛠 Tech Stack
+https://midhunpalanisamy.github.io/velmora-media-player/
 
-- **Framework**: Electron
-- **Frontend**: HTML5, Vanilla CSS, JavaScript
-- **Audio Engine**: Web Audio API (Context, Gain, Compressor)
-- **Persistence**: Node.js `fs` module with JSON
-- **Bundler**: electron-builder
+## License
 
-## 📄 License
+No license specified yet.
 
-This project is created for personal and professional local media management.
+## Author
 
----
-*Created by Midhun Palanisamy*
+Midhun Palanisamy
