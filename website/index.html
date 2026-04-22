@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velmora | Watch Local. Feel Cinematic.</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<header class="nav">
+    <div class="logo">
+        <span class="logo-red">V</span>elmora
+    </div>
+    <div class="nav-links">
+        <a href="https://github.com/MidhunPalanisamy/velmora-media-player" target="_blank" class="github-link">GitHub</a>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Watch Local.<br><span class="text-glow">Feel Cinematic.</span></h1>
+            <p>A modern desktop video player with a clean, immersive experience. Built for those who value their local media library.</p>
+            <div class="hero-actions">
+                <button id="downloadBtn" class="primary-btn">Download for your OS</button>
+                <p id="os-detect" class="os-hint">Detecting your system...</p>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <img src="../assets/icon.png" alt="Velmora Icon" class="hero-icon">
+            <div class="app-glow"></div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-header">
+            <p class="eyebrow">Experience</p>
+            <h2>Built for Performance</h2>
+        </div>
+        <div class="grid">
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="folder-closed"></i>
+                </div>
+                <h3>Folder Playlists</h3>
+                <p>Smart organization that treats your folders as playlists instantly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="layout"></i>
+                </div>
+                <h3>Cinematic UI</h3>
+                <p>A distraction-free interface that puts your content front and center.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="captions"></i>
+                </div>
+                <h3>Subtitles</h3>
+                <p>Full support for multiple audio tracks and subtitles (SRT/VTT).</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="zap"></i>
+                </div>
+                <h3>Audio Boost</h3>
+                <p>VLC-style audio amplification up to 200% with clear sound.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="releases" id="releases">
+        <div class="section-header">
+            <h2>All Versions</h2>
+            <p>Direct access to every stable release of Velmora.</p>
+        </div>
+        <div id="releasesList" class="releases-container">
+            <div class="loading">Fetching latest releases from GitHub...</div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-logo">Velmora</div>
+        <p>© 2026 Velmora Media Player. Designed by Midhun Palanisamy.</p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
