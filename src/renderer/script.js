@@ -21,7 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const muteBtn = document.getElementById('mute-btn');
     const volumeSlider = document.getElementById('volume-slider');
     const audioSelect = document.getElementById('audio-select');
+    const audioTrackStatus = document.getElementById('audio-track-status');
     const subtitleSelect = document.getElementById('subtitle-select');
+    const subtitlePlaceSelect = document.getElementById('subtitle-place-select');
+    const subtitleSizeSelect = document.getElementById('subtitle-size-select');
+    const subtitleColorSelect = document.getElementById('subtitle-color-select');
+    const subtitleBgSelect = document.getElementById('subtitle-bg-select');
+    const subtitleOverlay = document.getElementById('subtitle-overlay');
+    const subtitleDisplay = document.getElementById('subtitle-display');
     const subtitleFileInput = document.getElementById('subtitle-file');
     const loadSubtitleBtn = document.getElementById('load-subtitle-btn');
 
@@ -35,6 +42,115 @@ document.addEventListener('DOMContentLoaded', () => {
         return vttText;
     }
 
+    function applySubtitleSettings() {
+        subtitleOverlay.classList.remove('subtitle-pos-top', 'subtitle-pos-middle', 'subtitle-pos-bottom');
+        subtitleOverlay.classList.add(`subtitle-pos-${subtitlePlaceSelect.value}`);
+
+        subtitleDisplay.classList.remove('subtitle-size-sm', 'subtitle-size-md', 'subtitle-size-lg', 'subtitle-size-xl');
+        subtitleDisplay.classList.add(`subtitle-size-${subtitleSizeSelect.value}`);
+
+        subtitleDisplay.classList.remove('subtitle-color-white', 'subtitle-color-yellow', 'subtitle-color-cyan', 'subtitle-color-green');
+        subtitleDisplay.classList.add(`subtitle-color-${subtitleColorSelect.value}`);
+
+        subtitleDisplay.classList.remove('subtitle-bg-soft', 'subtitle-bg-solid', 'subtitle-bg-none');
+        subtitleDisplay.classList.add(`subtitle-bg-${subtitleBgSelect.value}`);
+    }
+
+    function hideSubtitleOverlay() {
+        subtitleDisplay.innerHTML = '';
+        subtitleDisplay.classList.add('hidden');
+    }
+
+    function renderActiveSubtitleCue() {
+        if (!activeSubtitleTrack || activeSubtitleTrack.mode === 'disabled') {
+            hideSubtitleOverlay();
+            return;
+        }
+
+        const activeCues = activeSubtitleTrack.activeCues ? Array.from(activeSubtitleTrack.activeCues) : [];
+        if (!activeCues.length) {
+            hideSubtitleOverlay();
+            return;
+        }
+
+        subtitleDisplay.innerHTML = '';
+        activeCues.forEach((cue) => {
+            const line = document.createElement('div');
+            line.className = 'subtitle-line';
+
+            if (typeof cue.getCueAsHTML === 'function') {
+                line.appendChild(cue.getCueAsHTML());
+            } else {
+                line.textContent = cue.text || '';
+            }
+
+            subtitleDisplay.appendChild(line);
+        });
+
+        subtitleDisplay.classList.remove('hidden');
+    }
+
+    function clearActiveSubtitleTrack(keepSelection = false) {
+        const tracks = Array.from(videoPlayer.textTracks || []);
+        tracks.forEach((track) => {
+            track.removeEventListener('cuechange', renderActiveSubtitleCue);
+            track.mode = 'disabled';
+        });
+
+        activeSubtitleTrack = null;
+        hideSubtitleOverlay();
+
+        if (!keepSelection) {
+            activeSubtitleTrackLabel = '';
+            subtitleSelect.value = 'off';
+        }
+    }
+
+    function activateSubtitleTrack(track, optionValue) {
+        if (!track) {
+            clearActiveSubtitleTrack();
+            return;
+        }
+
+        clearActiveSubtitleTrack(true);
+        activeSubtitleTrack = track;
+        activeSubtitleTrackLabel = track.label || '';
+        activeSubtitleTrack.mode = 'hidden';
+        activeSubtitleTrack.addEventListener('cuechange', renderActiveSubtitleCue);
+        renderActiveSubtitleCue();
+
+        if (typeof optionValue === 'string') {
+            subtitleSelect.value = optionValue;
+        }
+    }
+
+    function restoreActiveSubtitleTrack() {
+        const selectedValue = subtitleSelect.value;
+        if (selectedValue === 'off') {
+            hideSubtitleOverlay();
+            return;
+        }
+
+        if (!selectedValue.startsWith('embedded_')) {
+            const track = videoPlayer.textTracks[Number.parseInt(selectedValue, 10)];
+            if (track) {
+                activateSubtitleTrack(track, selectedValue);
+                return;
+            }
+        }
+
+        if (activeSubtitleTrackLabel) {
+            const tracks = Array.from(videoPlayer.textTracks || []);
+            const matchIndex = tracks.findIndex((track) => track.label === activeSubtitleTrackLabel);
+            if (matchIndex >= 0) {
+                activateSubtitleTrack(tracks[matchIndex], String(matchIndex));
+                return;
+            }
+        }
+
+        hideSubtitleOverlay();
+    }
+
     async function handleSubtitleImport(file) {
         if (!file) return;
 
@@ -42,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (e) => {
             let content = e.target.result;
             const fileName = file.name;
-            
+
             if (fileName.endsWith('.srt')) {
                 content = srtToVtt(content);
             }
@@ -55,20 +171,16 @@ document.addEventListener('DOMContentLoaded', () => {
             track.label = fileName.replace(/\.[^/.]+$/, "") + " (Imported)";
             track.src = url;
             track.srclang = 'en';
-            
+
             videoPlayer.appendChild(track);
-            
-            // Wait for tracks to update
+
             setTimeout(() => {
                 updateSubtitleTracks();
-                // Auto-select the newly added track
                 const tracks = videoPlayer.textTracks;
                 for (let i = 0; i < tracks.length; i++) {
                     if (tracks[i].label === track.label) {
-                        tracks[i].mode = 'showing';
-                        subtitleSelect.value = i;
-                    } else {
-                        tracks[i].mode = 'disabled';
+                        activateSubtitleTrack(tracks[i], String(i));
+                        break;
                     }
                 }
                 showToast(`Subtitle imported: ${file.name}`);
@@ -88,60 +200,88 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function updateSubtitleTracks() {
-        // Clear existing options except "Off"
+        console.log("Updating subtitle tracks UI...");
+        const currentSelection = subtitleSelect.value;
         subtitleSelect.innerHTML = '<option value="off">None / Off</option>';
-        
+
+        const seenLabels = new Set();
         const tracks = videoPlayer.textTracks;
         for (let i = 0; i < tracks.length; i++) {
             const track = tracks[i];
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = track.label || track.language || `Track ${i + 1}`;
-            if (track.mode === 'showing') {
-                option.selected = true;
-            }
-            subtitleSelect.appendChild(option);
-        }
-    }
+            const label = track.label || track.language || `Track ${i + 1}`;
 
-    function updateAudioTracks() {
-        audioSelect.innerHTML = '<option value="0">Default Audio</option>';
-        
-        if (videoPlayer.audioTracks) {
-            audioSelect.innerHTML = '';
-            for (let i = 0; i < videoPlayer.audioTracks.length; i++) {
-                const track = videoPlayer.audioTracks[i];
+            if (!seenLabels.has(label)) {
+                seenLabels.add(label);
                 const option = document.createElement('option');
-                option.value = i;
-                option.textContent = track.label || track.language || `Audio Track ${i + 1}`;
-                if (track.enabled) {
+                option.value = String(i);
+                option.textContent = label;
+                if (track === activeSubtitleTrack || track.mode !== 'disabled') {
                     option.selected = true;
                 }
-                audioSelect.appendChild(option);
+                subtitleSelect.appendChild(option);
             }
+        }
+
+        if (embeddedTracks && embeddedTracks.subtitle) {
+            embeddedTracks.subtitle.forEach((track) => {
+                const label = `${track.label} (Embedded)`;
+                if (!seenLabels.has(label)) {
+                    seenLabels.add(label);
+                    const option = document.createElement('option');
+                    option.value = `embedded_${track.index}`;
+                    option.textContent = label;
+                    subtitleSelect.appendChild(option);
+                }
+            });
+        }
+
+        if (currentSelection && Array.from(subtitleSelect.options).some((option) => option.value === currentSelection)) {
+            subtitleSelect.value = currentSelection;
         }
     }
 
-    subtitleSelect.onchange = () => {
+    subtitleSelect.onchange = async () => {
         const val = subtitleSelect.value;
-        const tracks = videoPlayer.textTracks;
-        
-        for (let i = 0; i < tracks.length; i++) {
-            tracks[i].mode = (val !== 'off' && parseInt(val) === i) ? 'showing' : 'disabled';
+        if (val === 'off') {
+            clearActiveSubtitleTrack();
+            return;
         }
-    };
 
-    audioSelect.onchange = () => {
-        if (videoPlayer.audioTracks) {
-            const val = parseInt(audioSelect.value);
-            for (let i = 0; i < videoPlayer.audioTracks.length; i++) {
-                videoPlayer.audioTracks[i].enabled = (i === val);
+        if (val.startsWith('embedded_')) {
+            const index = Number.parseInt(val.split('_')[1], 10);
+            const trackInfo = embeddedTracks.subtitle.find((track) => track.index === index);
+            if (trackInfo) {
+                await handleEmbeddedSubtitleSelection(index, trackInfo.label);
             }
+            return;
+        }
+
+        const track = videoPlayer.textTracks[Number.parseInt(val, 10)];
+        if (track) {
+            activateSubtitleTrack(track, val);
         }
     };
 
-    videoPlayer.textTracks.onaddtrack = updateSubtitleTracks;
-    videoPlayer.textTracks.onremovetrack = updateSubtitleTracks;
+    subtitlePlaceSelect.onchange = applySubtitleSettings;
+    subtitleSizeSelect.onchange = applySubtitleSettings;
+    subtitleColorSelect.onchange = applySubtitleSettings;
+    subtitleBgSelect.onchange = applySubtitleSettings;
+    applySubtitleSettings();
+
+    videoPlayer.textTracks.onaddtrack = () => {
+        console.log("Track added via API/FFmpeg");
+        updateSubtitleTracks();
+        restoreActiveSubtitleTrack();
+    };
+    videoPlayer.textTracks.onremovetrack = () => {
+        console.log("Track removed");
+        updateSubtitleTracks();
+        if (activeSubtitleTrack && !Array.from(videoPlayer.textTracks || []).includes(activeSubtitleTrack)) {
+            clearActiveSubtitleTrack();
+        } else {
+            restoreActiveSubtitleTrack();
+        }
+    };
 
     videoPlayer.onloadeddata = () => {
         // Initialize Audio System on first load if needed
@@ -156,6 +296,319 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSettingsBtn = document.getElementById('close-settings-btn');
     const ratioSelect = document.getElementById('ratio-select');
     const boostSelect = document.getElementById('boost-select');
+    const settingsLoader = document.getElementById('settings-loader');
+
+    let currentVideoPath = "";
+    let embeddedTracks = { audio: [], subtitle: [] };
+    let sourceAudioTrackIndex = -1;
+    let activeAudioSelection = '-1';
+    let pendingAudioSelection = '-1';
+    let pendingAudioSwitchTime = 0;
+    let pendingAudioWasPlaying = false;
+    let isAudioSwitchInProgress = false;
+    let audioSwitchLoaderTimeout = null;
+    let activeSubtitleTrack = null;
+    let activeSubtitleTrackLabel = '';
+
+    function setLoading(isLoading) {
+        clearTimeout(audioSwitchLoaderTimeout);
+
+        if (isLoading) {
+            settingsLoader.classList.remove('hidden');
+            audioSwitchLoaderTimeout = setTimeout(() => {
+                if (!isAudioSwitchInProgress) {
+                    return;
+                }
+
+                console.error("Audio switch timed out");
+                isAudioSwitchInProgress = false;
+                audioSelect.disabled = false;
+                audioSelect.value = activeAudioSelection;
+                settingsLoader.classList.add('hidden');
+                showToast("Audio switch timed out");
+            }, 10000);
+            return;
+        }
+
+        settingsLoader.classList.add('hidden');
+    }
+
+    function updateAudioTrackStatus() {
+        if (embeddedTracks.audio.length <= 1) {
+            audioTrackStatus.textContent = 'Currently using: Default audio';
+            return;
+        }
+
+        const selectedTrack = activeAudioSelection === '-1'
+            ? embeddedTracks.audio[sourceAudioTrackIndex] || embeddedTracks.audio[0]
+            : embeddedTracks.audio[Number.parseInt(activeAudioSelection, 10)];
+
+        audioTrackStatus.textContent = selectedTrack
+            ? `Currently using: ${selectedTrack.label}`
+            : 'Currently using: Default audio';
+    }
+
+    function populateAudioTrackOptions() {
+        audioSelect.innerHTML = '';
+
+        if (embeddedTracks.audio.length <= 1) {
+            const option = document.createElement('option');
+            option.value = '-1';
+            option.textContent = 'Default Audio';
+            audioSelect.appendChild(option);
+            audioSelect.value = '-1';
+            updateAudioTrackStatus();
+            return;
+        }
+
+        const sourceTrack = embeddedTracks.audio[sourceAudioTrackIndex] || embeddedTracks.audio[0];
+        const sourceOption = document.createElement('option');
+        sourceOption.value = '-1';
+        sourceOption.textContent = `${sourceTrack.label} (Original)`;
+        audioSelect.appendChild(sourceOption);
+
+        embeddedTracks.audio.forEach((track, index) => {
+            if (index === sourceAudioTrackIndex) {
+                return;
+            }
+
+            const option = document.createElement('option');
+            option.value = String(index);
+            option.textContent = track.label;
+            audioSelect.appendChild(option);
+        });
+
+        audioSelect.value = activeAudioSelection;
+        updateAudioTrackStatus();
+    }
+
+    populateAudioTrackOptions();
+
+    function buildMediaSrc(filePath) {
+        return `file://${filePath}`;
+    }
+
+    function reloadVideoSource(filePath, currentTime, wasPlaying) {
+        const newSrc = `${buildMediaSrc(filePath)}?t=${Date.now()}`;
+
+        videoPlayer.pause();
+        videoPlayer.removeAttribute("src");
+        videoPlayer.load();
+
+        const restorePlayback = () => {
+            const safeTime = Number.isFinite(currentTime) ? currentTime : 0;
+            const duration = Number.isFinite(videoPlayer.duration) ? videoPlayer.duration : safeTime;
+            videoPlayer.currentTime = Math.min(safeTime, duration || safeTime);
+
+            if (wasPlaying) {
+                const playPromise = videoPlayer.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch((err) => {
+                        console.error("Failed to resume playback after audio switch:", err);
+                    });
+                }
+            }
+        };
+
+        videoPlayer.addEventListener('loadedmetadata', restorePlayback, { once: true });
+        videoPlayer.src = newSrc;
+        videoPlayer.load();
+    }
+
+    window.api.onAudioSwitched(({ newSrc }) => {
+        if (!newSrc) {
+            console.error("Audio switch reply missing source");
+            isAudioSwitchInProgress = false;
+            audioSelect.disabled = false;
+            audioSelect.value = activeAudioSelection;
+            setLoading(false);
+            updateAudioTrackStatus();
+            showToast("Failed to switch audio track");
+            return;
+        }
+
+        reloadVideoSource(newSrc, pendingAudioSwitchTime, pendingAudioWasPlaying);
+        activeAudioSelection = pendingAudioSelection;
+        isAudioSwitchInProgress = false;
+        audioSelect.disabled = false;
+        audioSelect.value = activeAudioSelection;
+        setLoading(false);
+        updateAudioTrackStatus();
+        showToast(activeAudioSelection === '-1' ? "Original audio restored" : "Audio track switched");
+    });
+
+    window.api.onAudioSwitchFailed((data) => {
+        console.error("Audio switch failed:", data?.message);
+        isAudioSwitchInProgress = false;
+        audioSelect.disabled = false;
+        audioSelect.value = activeAudioSelection;
+        setLoading(false);
+        updateAudioTrackStatus();
+        showToast(data?.message || "Failed to switch audio track");
+    });
+
+    audioSelect.onchange = () => {
+        const val = audioSelect.value;
+
+        if (!currentVideoPath) {
+            audioSelect.value = activeAudioSelection;
+            return;
+        }
+
+        if (isAudioSwitchInProgress) {
+            audioSelect.value = activeAudioSelection;
+            return;
+        }
+
+        if (val === activeAudioSelection) {
+            return;
+        }
+
+        const selectedTrack = Number.parseInt(val, 10);
+        if (val !== '-1' && !embeddedTracks.audio[selectedTrack]) {
+            console.error("Invalid audio track selection:", val);
+            audioSelect.value = activeAudioSelection;
+            showToast("Audio track unavailable");
+            return;
+        }
+
+        pendingAudioSelection = val;
+        pendingAudioSwitchTime = videoPlayer.currentTime;
+        pendingAudioWasPlaying = !videoPlayer.paused;
+        isAudioSwitchInProgress = true;
+        audioSelect.disabled = true;
+
+        if (val === '-1') {
+            showToast("Switching to original audio...");
+        } else {
+            console.log("Selected audio track:", selectedTrack);
+            showToast(`Switching to audio track ${selectedTrack}...`);
+        }
+
+        setLoading(true);
+        window.api.switchAudio({
+            filePath: currentVideoPath,
+            trackIndex: val === '-1' ? -1 : selectedTrack,
+            currentTime: pendingAudioSwitchTime
+        });
+    };
+
+    async function detectEmbeddedTracks(filePath) {
+        settingsLoader.classList.remove('hidden');
+        // MANDATORY: Always pair with a safety timeout to prevent infinite loading
+        const loaderTimeout = setTimeout(() => {
+            settingsLoader.classList.add('hidden');
+            console.warn("Media parsing timed out");
+        }, 10000);
+
+        try {
+            await window.api.cleanupTemp(); // Cleanup old temp files
+            const metadata = await window.api.getVideoMetadata(filePath);
+
+            // MANDATORY: Deduplicate logic from FFprobe
+            embeddedTracks = { audio: [], subtitle: [] };
+            const seenAudio = new Set();
+            const seenSub = new Set();
+
+            console.log("FFprobe raw output:", metadata);
+
+            if (metadata && metadata.streams) {
+                metadata.streams.forEach(stream => {
+                    const lang = stream.tags?.language || "und";
+                    const title = stream.tags?.title || "";
+                    const trackLabel = title ? `${title} (${lang})` : (lang !== "und" ? lang : `Track ${stream.index}`);
+
+                    if (stream.codec_type === 'audio') {
+                        const key = `${stream.index}-${trackLabel}`;
+                        if (!seenAudio.has(key)) {
+                            seenAudio.add(key);
+                            embeddedTracks.audio.push({
+                                index: stream.index,
+                                label: `${trackLabel} [${stream.codec_name}]`,
+                                isDefault: Boolean(stream.disposition?.default),
+                                stream: stream
+                            });
+                        }
+                    } else if (stream.codec_type === 'subtitle') {
+                        const key = `${stream.index}-${trackLabel}`;
+                        if (!seenSub.has(key)) {
+                            seenSub.add(key);
+                            embeddedTracks.subtitle.push({
+                                index: stream.index,
+                                label: `${trackLabel} [${stream.codec_name}]`,
+                                stream: stream
+                            });
+                        }
+                    }
+                });
+            }
+
+            console.log("Audio Tracks:", embeddedTracks.audio);
+            console.log("Subtitle Tracks:", embeddedTracks.subtitle);
+            sourceAudioTrackIndex = embeddedTracks.audio.findIndex((track) => track.isDefault);
+            if (sourceAudioTrackIndex < 0) {
+                sourceAudioTrackIndex = embeddedTracks.audio.length > 0 ? 0 : -1;
+            }
+
+            activeAudioSelection = '-1';
+            pendingAudioSelection = '-1';
+            audioSelect.disabled = false;
+            populateAudioTrackOptions();
+
+            // Populate Subtitle UI
+            updateSubtitleTracks();
+
+        } catch (err) {
+            console.error("Metadata detection failed:", err);
+            showToast("Failed to detect tracks");
+        } finally {
+            clearTimeout(loaderTimeout); // MANDATORY: Loading MUST end
+            settingsLoader.classList.add('hidden');
+        }
+    }
+
+    async function handleEmbeddedSubtitleSelection(streamIndex, label) {
+        settingsLoader.classList.remove('hidden');
+        const loaderTimeout = setTimeout(() => settingsLoader.classList.add('hidden'), 10000);
+
+        try {
+            // MANDATORY: Remove existing <track> elements BEFORE adding new ones
+            const existingTracks = videoPlayer.querySelectorAll("track");
+            existingTracks.forEach(t => t.remove());
+
+            const vttPath = await window.api.extractSubtitle({
+                filePath: currentVideoPath,
+                streamIndex: streamIndex
+            });
+
+            if (vttPath) {
+                const track = document.createElement('track');
+                track.kind = 'subtitles';
+                track.label = label + " (Embedded)";
+                track.src = `file://${vttPath}`;
+                track.srclang = 'en';
+                track.default = true;
+
+                videoPlayer.appendChild(track);
+
+                setTimeout(() => {
+                    const tracks = videoPlayer.textTracks;
+                    for (let i = 0; i < tracks.length; i++) {
+                        if (tracks[i].label === track.label) {
+                            activateSubtitleTrack(tracks[i], String(i));
+                            break;
+                        }
+                    }
+                }, 200);
+            }
+        } catch (err) {
+            console.error("Subtitle extraction failed:", err);
+            showToast("Failed to extract subtitle");
+        } finally {
+            clearTimeout(loaderTimeout);
+            settingsLoader.classList.add('hidden');
+        }
+    }
     
     // Upload Buttons
     const uploadFilesBtn = document.getElementById('upload-files-btn');
@@ -296,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLibrary(filter = '') {
         videoList.innerHTML = '';
         const searchFilter = filter.toLowerCase();
-        
+
         if (libraryData.length === 0) {
             videoList.innerHTML = '<div class="loading-card">Upload some videos to start</div>';
             videoCount.textContent = '0 videos';
@@ -390,8 +843,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentIndex = index;
         const video = allVideos[currentIndex];
+        currentVideoPath = video.path;
+        sourceAudioTrackIndex = -1;
+        isAudioSwitchInProgress = false;
+        audioSelect.disabled = false;
+        activeAudioSelection = '-1';
+        pendingAudioSelection = '-1';
+        clearActiveSubtitleTrack();
+        setLoading(false);
+        updateAudioTrackStatus();
 
-        // Clear existing tracks (especially imported ones)
+        // Clear existing tracks
         while (videoPlayer.firstChild) {
             videoPlayer.removeChild(videoPlayer.firstChild);
         }
@@ -405,6 +867,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderLibrary(searchInput.value);
         showToast(`Playing: ${video.displayName}`);
+
+        detectEmbeddedTracks(video.path);
     }
 
     // IPC Upload Handlers
@@ -436,6 +900,13 @@ document.addEventListener('DOMContentLoaded', () => {
         await saveLibrary();
         allVideos = [];
         currentIndex = -1;
+        currentVideoPath = '';
+        sourceAudioTrackIndex = -1;
+        embeddedTracks = { audio: [], subtitle: [] };
+        activeAudioSelection = '-1';
+        pendingAudioSelection = '-1';
+        clearActiveSubtitleTrack();
+        populateAudioTrackOptions();
         videoPlayer.src = '';
         videoWrapper.classList.remove('has-video');
         nowPlayingTitle.textContent = 'Select a video';
@@ -496,19 +967,22 @@ videoPlayer.onpause = () => {
             seekSlider.value = videoPlayer.currentTime;
             currentTimeLabel.textContent = formatTime(videoPlayer.currentTime);
         }
+
+        if (activeSubtitleTrack) {
+            renderActiveSubtitleCue();
+        }
     };
 
     videoPlayer.onloadedmetadata = () => {
         seekSlider.max = videoPlayer.duration;
         durationLabel.textContent = formatTime(videoPlayer.duration);
-        
-        console.log("audioTracks supported:", !!videoPlayer.audioTracks);
-        console.log("textTracks count:", videoPlayer.textTracks.length);
-        
-        updateSubtitleTracks();
-        updateAudioTracks();
-    };
 
+        console.log("Metadata loaded, textTracks count:", videoPlayer.textTracks.length);
+
+        updateSubtitleTracks();
+        restoreActiveSubtitleTrack();
+        updateAudioTrackStatus();
+    };
     seekSlider.oninput = () => {
         userIsSeeking = true;
         currentTimeLabel.textContent = formatTime(seekSlider.value);

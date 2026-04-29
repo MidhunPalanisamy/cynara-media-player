@@ -1,11 +1,82 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
 
 let mainWindow;
 let watchers = {};
 const userDataPath = app.getPath('userData');
 const libraryFilePath = path.join(userDataPath, 'library.json');
+const tempDir = path.join(userDataPath, 'temp_tracks');
+
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir);
+}
+
+ipcMain.handle('get-video-metadata', async (event, filePath) => {
+  try {
+    const { stdout } = await execPromise(`ffprobe -v error -show_streams -print_format json "${filePath}"`);
+    return JSON.parse(stdout);
+  } catch (err) {
+    console.error('ffprobe error:', err);
+    return null;
+  }
+});
+
+ipcMain.on('switch-audio', async (event, { filePath, trackIndex }) => {
+  try {
+    if (trackIndex === -1) {
+      event.reply('audio-switched', { newSrc: filePath });
+      return;
+    }
+
+    const output = path.join(tempDir, `audio-switch-${Date.now()}.mp4`);
+    console.log('Generated file:', output);
+    console.log('Selected audio track:', trackIndex);
+
+    const command = `ffmpeg -y -i "${filePath}" -map 0:v -map 0:a:${trackIndex} -c copy "${output}"`;
+    await execPromise(command);
+
+    if (!fs.existsSync(output)) {
+      console.error('FFmpeg output missing');
+      event.reply('audio-switch-failed', { message: 'FFmpeg output missing' });
+      return;
+    }
+
+    event.reply('audio-switched', { newSrc: output });
+  } catch (err) {
+    console.error('ffmpeg remux error:', err);
+    event.reply('audio-switch-failed', { message: 'Failed to switch audio track' });
+  }
+});
+
+ipcMain.handle('extract-subtitle', async (event, { filePath, streamIndex }) => {
+  const outputFileName = `sub_${Date.now()}.vtt`;
+  const outputPath = path.join(tempDir, outputFileName);
+  try {
+    const command = `ffmpeg -i "${filePath}" -map 0:${streamIndex} -y "${outputPath}"`;
+    await execPromise(command);
+    return outputPath;
+  } catch (err) {
+    console.error('ffmpeg sub extraction error:', err);
+    return null;
+  }
+});
+
+ipcMain.handle('cleanup-temp', async () => {
+  try {
+    if (fs.existsSync(tempDir)) {
+      const files = fs.readdirSync(tempDir);
+      for (const file of files) {
+        fs.unlinkSync(path.join(tempDir, file));
+      }
+    }
+  } catch (err) {
+    console.error('Cleanup failed:', err);
+  }
+});
 
 function scanFolder(folderPath) {
   try {
@@ -69,6 +140,18 @@ if (!gotTheLock) {
       // Close all watchers
       Object.values(watchers).forEach(w => w.close());
       watchers = {};
+
+      // Cleanup temp tracks
+      try {
+        if (fs.existsSync(tempDir)) {
+          const files = fs.readdirSync(tempDir);
+          for (const file of files) {
+            fs.unlinkSync(path.join(tempDir, file));
+          }
+        }
+      } catch (err) {
+        console.error('Cleanup failed:', err);
+      }
     });
   }
 

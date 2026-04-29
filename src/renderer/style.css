@@ -158,6 +158,134 @@ video {
     object-fit: contain !important;
 }
 
+.subtitle-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 28px 34px 118px;
+    pointer-events: none;
+}
+
+.subtitle-display {
+    max-width: min(86%, 980px);
+    border-radius: 12px;
+    padding: 0.22em 0.58em;
+    text-align: center;
+    line-height: 1.42;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: pre-wrap;
+    word-break: break-word;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+}
+
+.subtitle-display.hidden {
+    display: none;
+}
+
+.subtitle-line + .subtitle-line {
+    margin-top: 0.24em;
+}
+
+.subtitle-pos-top {
+    align-items: flex-start;
+    padding-top: 34px;
+    padding-bottom: 34px;
+}
+
+.subtitle-pos-middle {
+    align-items: center;
+    padding-bottom: 34px;
+}
+
+.subtitle-pos-bottom {
+    align-items: flex-end;
+}
+
+.subtitle-size-sm {
+    font-size: clamp(1rem, 1.55vw, 1.28rem);
+}
+
+.subtitle-size-md {
+    font-size: clamp(1.18rem, 1.9vw, 1.54rem);
+}
+
+.subtitle-size-lg {
+    font-size: clamp(1.36rem, 2.3vw, 1.8rem);
+}
+
+.subtitle-size-xl {
+    font-size: clamp(1.58rem, 2.75vw, 2.12rem);
+}
+
+.subtitle-color-white {
+    color: #ffffff;
+}
+
+.subtitle-color-yellow {
+    color: #ffe66d;
+}
+
+.subtitle-color-cyan {
+    color: #8bf7ff;
+}
+
+.subtitle-color-green {
+    color: #b6ff9f;
+}
+
+.subtitle-bg-soft {
+    background: rgba(0, 0, 0, 0.34);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.subtitle-bg-solid {
+    background: rgba(0, 0, 0, 0.62);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+
+.subtitle-bg-none {
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Loader Styles */
+.settings-loader {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 1001;
+    border-radius: inherit;
+    transition: opacity 0.3s ease;
+}
+
+.settings-loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 /* Settings Side Panel Redesign */
 .settings-side-panel {
     position: absolute;
@@ -165,16 +293,17 @@ video {
     right: 0;
     width: 320px;
     height: 100%;
-    background: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(32px) saturate(180%);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.6);
+    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.8);
     transition: transform var(--smooth), opacity var(--smooth);
-    padding: 24px;
+    padding: 32px 24px;
 }
+
 
 .settings-side-panel.hidden {
     transform: translateX(100%);
@@ -259,6 +388,12 @@ video {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--muted);
+}
+
+.setting-note {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--faint);
 }
 
 .premium-select {
@@ -547,6 +682,10 @@ video {
 
 .video-shell:fullscreen .bottom-controls {
     margin-bottom: 20px;
+}
+
+.video-shell:fullscreen .subtitle-overlay {
+    padding-bottom: 138px;
 }
 
 .player-info {

@@ -28,6 +28,10 @@
                     <video id="main-player" preload="metadata" playsinline>
                         Your browser does not support the video tag.
                     </video>
+
+                    <div id="subtitle-overlay" class="subtitle-overlay subtitle-pos-bottom">
+                        <div id="subtitle-display" class="subtitle-display subtitle-size-md subtitle-color-white subtitle-bg-soft hidden"></div>
+                    </div>
                     
                     <div id="empty-state" class="empty-state">
                         <strong>Select a video from the sidebar to start watching</strong>
@@ -70,6 +74,10 @@
 
                     <!-- New Settings Side Panel -->
                     <div id="settings-side-panel" class="settings-side-panel hidden">
+                        <div id="settings-loader" class="settings-loader hidden">
+                            <div class="loader-spinner"></div>
+                            <p>Parsing media tracks...</p>
+                        </div>
                         <div class="settings-header">
                             <h2>Settings</h2>
                             <button id="close-settings-btn" class="close-btn">&times;</button>
@@ -77,7 +85,7 @@
                         
                         <div class="settings-content">
                             <div class="settings-section">
-                                <h3>Playback</h3>
+                                <h3><span class="icon">⚡</span> Playback</h3>
                                 <div class="settings-group">
                                     <label>Speed</label>
                                     <select id="speed-select" class="premium-select">
@@ -100,12 +108,13 @@
                             </div>
 
                             <div class="settings-section">
-                                <h3>Audio</h3>
+                                <h3><span class="icon">🔊</span> Audio</h3>
                                 <div class="settings-group">
                                     <label>Audio Track</label>
                                     <select id="audio-select" class="premium-select">
-                                        <option value="0">Default</option>
+                                        <option value="-1">Original Audio</option>
                                     </select>
+                                    <p id="audio-track-status" class="setting-note">Currently using: Default audio</p>
                                 </div>
                                 <div class="settings-group">
                                     <label>Volume Boost</label>
@@ -119,11 +128,45 @@
                             </div>
 
                             <div class="settings-section">
-                                <h3>Subtitles</h3>
+                                <h3><span class="icon">💬</span> Subtitles</h3>
                                 <div class="settings-group">
                                     <label>Subtitle Track</label>
                                     <select id="subtitle-select" class="premium-select">
                                         <option value="off">Off</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Subtitle Position</label>
+                                    <select id="subtitle-place-select" class="premium-select">
+                                        <option value="bottom">Bottom</option>
+                                        <option value="middle">Middle</option>
+                                        <option value="top">Top</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Subtitle Size</label>
+                                    <select id="subtitle-size-select" class="premium-select">
+                                        <option value="sm">Small</option>
+                                        <option value="md" selected>Medium</option>
+                                        <option value="lg">Large</option>
+                                        <option value="xl">Extra Large</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Subtitle Color</label>
+                                    <select id="subtitle-color-select" class="premium-select">
+                                        <option value="white" selected>White</option>
+                                        <option value="yellow">Yellow</option>
+                                        <option value="cyan">Cyan</option>
+                                        <option value="green">Green</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Subtitle Background</label>
+                                    <select id="subtitle-bg-select" class="premium-select">
+                                        <option value="soft" selected>Soft Shadow</option>
+                                        <option value="solid">Solid Box</option>
+                                        <option value="none">No Background</option>
                                     </select>
                                 </div>
                                 <button id="load-subtitle-btn" class="import-btn">
