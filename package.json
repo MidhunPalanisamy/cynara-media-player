@@ -17,46 +17,9 @@
   },
 
   "scripts": {
+    "prepare:media-binaries": "node scripts/prepare-media-binaries.js",
+    "prebuild": "npm run prepare:media-binaries",
     "start": "electron .",
-    "build": "electron-builder"
-  },
-
-  "build": {
-    "appId": "com.velmora.player",
-    "productName": "Velmora",
-
-    "publish": null,
-
-    "artifactName": "Velmora-${version}-${os}-${arch}.${ext}",
-
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64", "arm64"]
-        }
-      ],
-      "icon": "assets/velmora.icns",
-      "category": "public.app-category.video"
-    },
-
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "assets/velmora.ico"
-    },
-
-    "directories": {
-      "output": "dist"
-    },
-
-    "files": [
-      "src/**/*",
-      "assets/**/*"
-    ]
+    "build": "node scripts/build.js"
   }
 }

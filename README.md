@@ -19,6 +19,9 @@ Velmora focuses on local-first playback, avoiding unnecessary complexity while d
 * Subtitle and audio track support
   Supports multiple audio tracks and subtitles (SRT, VTT).
 
+* Self-contained release builds
+  Production builds bundle FFmpeg and FFprobe so end users do not need Homebrew or separate media tools installed.
+
 * Advanced playback controls
   Includes precise seeking, playback speed control, and aspect ratio handling.
 
@@ -126,6 +129,8 @@ To generate production builds:
 ```bash
 npm run build
 ```
+
+On the first run, the build step downloads the platform-specific FFmpeg/FFprobe binaries that Velmora packages into the app. macOS builds are generated one architecture at a time to avoid `hdiutil` DMG resize contention.
 
 Build output will be available in the `dist/` directory.
 

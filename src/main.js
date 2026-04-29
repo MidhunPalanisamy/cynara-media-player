@@ -1,9 +1,9 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const util = require('util');
-const execPromise = util.promisify(exec);
+const execFilePromise = util.promisify(execFile);
 
 let mainWindow;
 let watchers = {};
@@ -15,9 +15,63 @@ if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir);
 }
 
+function getBinaryCandidates(binaryName) {
+  const extension = process.platform === 'win32' ? '.exe' : '';
+  const resolvedName = binaryName.endsWith(extension) ? binaryName : `${binaryName}${extension}`;
+  const bundledPath = path.join(process.resourcesPath, 'bin', `${process.platform}-${process.arch}`, resolvedName);
+  const localPackageRoot = !app.isPackaged
+    ? path.join(
+        path.resolve(__dirname, '..'),
+        '.cache',
+        'bundled-binaries',
+        'node_modules',
+        binaryName === 'ffmpeg' ? '@ffmpeg-installer' : '@ffprobe-installer',
+        `${process.platform}-${process.arch}`
+      )
+    : null;
+  const localPreparedPath = localPackageRoot ? path.join(localPackageRoot, resolvedName) : null;
+
+  const platformCandidates = process.platform === 'darwin'
+    ? [
+        `/opt/homebrew/bin/${resolvedName}`,
+        `/usr/local/bin/${resolvedName}`,
+        `/usr/bin/${resolvedName}`
+      ]
+    : process.platform === 'win32'
+      ? [
+          `C:\\Program Files\\ffmpeg\\bin\\${resolvedName}`,
+          `C:\\ffmpeg\\bin\\${resolvedName}`
+        ]
+      : [
+          `/usr/local/bin/${resolvedName}`,
+          `/usr/bin/${resolvedName}`
+        ];
+
+  return [
+    process.env[`${binaryName.toUpperCase()}_PATH`],
+    bundledPath,
+    localPreparedPath,
+    ...platformCandidates
+  ].filter(Boolean);
+}
+
+function resolveBinary(binaryName) {
+  const resolved = getBinaryCandidates(binaryName).find((candidate) => fs.existsSync(candidate));
+  if (resolved) {
+    return resolved;
+  }
+
+  return binaryName;
+}
+
+const ffmpegBinary = resolveBinary('ffmpeg');
+const ffprobeBinary = resolveBinary('ffprobe');
+console.log('Using ffmpeg binary:', ffmpegBinary);
+console.log('Using ffprobe binary:', ffprobeBinary);
+
 ipcMain.handle('get-video-metadata', async (event, filePath) => {
   try {
-    const { stdout } = await execPromise(`ffprobe -v error -show_streams -print_format json "${filePath}"`);
+    const { stdout } = await execFilePromise(ffprobeBinary, ['-v', 'error', '-show_streams', '-print_format', 'json', filePath]);
     return JSON.parse(stdout);
   } catch (err) {
     console.error('ffprobe error:', err);
@@ -36,8 +90,7 @@ ipcMain.on('switch-audio', async (event, { filePath, trackIndex }) => {
     console.log('Generated file:', output);
     console.log('Selected audio track:', trackIndex);
 
-    const command = `ffmpeg -y -i "${filePath}" -map 0:v -map 0:a:${trackIndex} -c copy "${output}"`;
-    await execPromise(command);
+    await execFilePromise(ffmpegBinary, ['-y', '-i', filePath, '-map', '0:v', '-map', `0:a:${trackIndex}`, '-c', 'copy', output]);
 
     if (!fs.existsSync(output)) {
       console.error('FFmpeg output missing');
@@ -56,8 +109,7 @@ ipcMain.handle('extract-subtitle', async (event, { filePath, streamIndex }) => {
   const outputFileName = `sub_${Date.now()}.vtt`;
   const outputPath = path.join(tempDir, outputFileName);
   try {
-    const command = `ffmpeg -i "${filePath}" -map 0:${streamIndex} -y "${outputPath}"`;
-    await execPromise(command);
+    await execFilePromise(ffmpegBinary, ['-i', filePath, '-map', `0:${streamIndex}`, '-y', outputPath]);
     return outputPath;
   } catch (err) {
     console.error('ffmpeg sub extraction error:', err);
