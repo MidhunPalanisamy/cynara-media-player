@@ -24,10 +24,136 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitleSelect = document.getElementById('subtitle-select');
     const subtitleFileInput = document.getElementById('subtitle-file');
     const loadSubtitleBtn = document.getElementById('load-subtitle-btn');
+
+    function srtToVtt(srtText) {
+        // Add WEBVTT header if not present
+        let vttText = 'WEBVTT\n\n' + srtText
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            // Replace comma with dot for milliseconds
+            .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+        return vttText;
+    }
+
+    async function handleSubtitleImport(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let content = e.target.result;
+            const fileName = file.name;
+            
+            if (fileName.endsWith('.srt')) {
+                content = srtToVtt(content);
+            }
+
+            const blob = new Blob([content], { type: 'text/vtt' });
+            const url = URL.createObjectURL(blob);
+
+            const track = document.createElement('track');
+            track.kind = 'subtitles';
+            track.label = fileName.replace(/\.[^/.]+$/, "") + " (Imported)";
+            track.src = url;
+            track.srclang = 'en';
+            
+            videoPlayer.appendChild(track);
+            
+            // Wait for tracks to update
+            setTimeout(() => {
+                updateSubtitleTracks();
+                // Auto-select the newly added track
+                const tracks = videoPlayer.textTracks;
+                for (let i = 0; i < tracks.length; i++) {
+                    if (tracks[i].label === track.label) {
+                        tracks[i].mode = 'showing';
+                        subtitleSelect.value = i;
+                    } else {
+                        tracks[i].mode = 'disabled';
+                    }
+                }
+                showToast(`Subtitle imported: ${file.name}`);
+            }, 100);
+        };
+        reader.readAsText(file);
+    }
+
+    subtitleFileInput.onchange = (e) => {
+        if (e.target.files.length > 0) {
+            handleSubtitleImport(e.target.files[0]);
+        }
+    };
+
+    loadSubtitleBtn.onclick = () => {
+        subtitleFileInput.click();
+    };
+
+    function updateSubtitleTracks() {
+        // Clear existing options except "Off"
+        subtitleSelect.innerHTML = '<option value="off">None / Off</option>';
+        
+        const tracks = videoPlayer.textTracks;
+        for (let i = 0; i < tracks.length; i++) {
+            const track = tracks[i];
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = track.label || track.language || `Track ${i + 1}`;
+            if (track.mode === 'showing') {
+                option.selected = true;
+            }
+            subtitleSelect.appendChild(option);
+        }
+    }
+
+    function updateAudioTracks() {
+        audioSelect.innerHTML = '<option value="0">Default Audio</option>';
+        
+        if (videoPlayer.audioTracks) {
+            audioSelect.innerHTML = '';
+            for (let i = 0; i < videoPlayer.audioTracks.length; i++) {
+                const track = videoPlayer.audioTracks[i];
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = track.label || track.language || `Audio Track ${i + 1}`;
+                if (track.enabled) {
+                    option.selected = true;
+                }
+                audioSelect.appendChild(option);
+            }
+        }
+    }
+
+    subtitleSelect.onchange = () => {
+        const val = subtitleSelect.value;
+        const tracks = videoPlayer.textTracks;
+        
+        for (let i = 0; i < tracks.length; i++) {
+            tracks[i].mode = (val !== 'off' && parseInt(val) === i) ? 'showing' : 'disabled';
+        }
+    };
+
+    audioSelect.onchange = () => {
+        if (videoPlayer.audioTracks) {
+            const val = parseInt(audioSelect.value);
+            for (let i = 0; i < videoPlayer.audioTracks.length; i++) {
+                videoPlayer.audioTracks[i].enabled = (i === val);
+            }
+        }
+    };
+
+    videoPlayer.textTracks.onaddtrack = updateSubtitleTracks;
+    videoPlayer.textTracks.onremovetrack = updateSubtitleTracks;
+
+    videoPlayer.onloadeddata = () => {
+        // Initialize Audio System on first load if needed
+        if (!audioContext) {
+            setupAudio(videoPlayer);
+        }
+    };
     const fullscreenBtn = document.getElementById('fullscreen-btn');
     const videoShell = document.getElementById('video-shell');
     const settingsBtn = document.getElementById('settings-btn');
-    const settingsPanel = document.getElementById('settings-panel');
+    const settingsSidePanel = document.getElementById('settings-side-panel');
+    const closeSettingsBtn = document.getElementById('close-settings-btn');
     const ratioSelect = document.getElementById('ratio-select');
     const boostSelect = document.getElementById('boost-select');
     
@@ -265,6 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentIndex = index;
         const video = allVideos[currentIndex];
 
+        // Clear existing tracks (especially imported ones)
+        while (videoPlayer.firstChild) {
+            videoPlayer.removeChild(videoPlayer.firstChild);
+        }
+
         videoPlayer.src = `file://${video.path}`;
         videoPlayer.play();
         
@@ -370,6 +501,12 @@ videoPlayer.onpause = () => {
     videoPlayer.onloadedmetadata = () => {
         seekSlider.max = videoPlayer.duration;
         durationLabel.textContent = formatTime(videoPlayer.duration);
+        
+        console.log("audioTracks supported:", !!videoPlayer.audioTracks);
+        console.log("textTracks count:", videoPlayer.textTracks.length);
+        
+        updateSubtitleTracks();
+        updateAudioTracks();
     };
 
     seekSlider.oninput = () => {
@@ -428,11 +565,20 @@ videoPlayer.onpause = () => {
 
     settingsBtn.onclick = (e) => {
         e.stopPropagation();
-        settingsPanel.classList.toggle('hidden');
+        settingsSidePanel.classList.toggle('hidden');
     };
 
-    document.onclick = () => settingsPanel.classList.add('hidden');
-    settingsPanel.onclick = (e) => e.stopPropagation();
+    closeSettingsBtn.onclick = () => {
+        settingsSidePanel.classList.add('hidden');
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!settingsSidePanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+            settingsSidePanel.classList.add('hidden');
+        }
+    });
+
+    settingsSidePanel.onclick = (e) => e.stopPropagation();
 
     searchInput.oninput = () => renderLibrary(searchInput.value);
     clearSearchBtn.onclick = () => {

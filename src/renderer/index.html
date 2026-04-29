@@ -58,63 +58,78 @@
                                 <div class="right-group">
                                     <div class="settings-container">
                                         <button id="settings-btn" class="mini-btn icon-only" type="button" aria-label="Settings"><img src="../../assets/settings.png" alt="Settings"></button>
-                                        
-                                        <div id="settings-panel" class="settings-panel hidden">
-                                            <div class="settings-item">
-                                                <label>Speed</label>
-                                                <select id="speed-select" class="clean-select">
-                                                    <option value="0.5">0.5x</option>
-                                                    <option value="0.75">0.75x</option>
-                                                    <option value="1" selected>1x</option>
-                                                    <option value="1.25">1.25x</option>
-                                                    <option value="1.5">1.5x</option>
-                                                    <option value="2">2x</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="settings-item">
-                                                <label>Audio</label>
-                                                <select id="audio-select" class="clean-select">
-                                                    <option>Audio</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="settings-item">
-                                                <label>Subtitles</label>
-                                                <div class="subtitle-wrap">
-                                                    <select id="subtitle-select" class="clean-select">
-                                                        <option value="off">Subs</option>
-                                                    </select>
-                                                    <button id="load-subtitle-btn" class="mini-btn tiny" type="button">+</button>
-                                                    <input id="subtitle-file" type="file" accept=".vtt,.srt" hidden>
-                                                </div>
-                                            </div>
-
-                                            <div class="settings-item">
-                                                <label>Boost</label>
-                                                <select id="boost-select" class="clean-select">
-                                                    <option value="1.0">Normal (100%)</option>
-                                                    <option value="1.3">Boost (130%)</option>
-                                                    <option value="1.6">High (160%)</option>
-                                                    <option value="2.0">Max (200%)</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="settings-item">
-                                                <label>Ratio</label>
-                                                <select id="ratio-select" class="clean-select">
-                                                    <option value="contain">Fit</option>
-                                                    <option value="cover">Zoom</option>
-                                                    <option value="fill">Stretch</option>
-                                                </select>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <button id="fullscreen-btn" class="mini-btn icon-only" type="button" aria-label="Fullscreen">
                                         <img id="fullscreen-img" src="../../assets/full-screen.png" alt="FS">
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Settings Side Panel -->
+                    <div id="settings-side-panel" class="settings-side-panel hidden">
+                        <div class="settings-header">
+                            <h2>Settings</h2>
+                            <button id="close-settings-btn" class="close-btn">&times;</button>
+                        </div>
+                        
+                        <div class="settings-content">
+                            <div class="settings-section">
+                                <h3>Playback</h3>
+                                <div class="settings-group">
+                                    <label>Speed</label>
+                                    <select id="speed-select" class="premium-select">
+                                        <option value="0.5">0.5x</option>
+                                        <option value="0.75">0.75x</option>
+                                        <option value="1" selected>1x</option>
+                                        <option value="1.25">1.25x</option>
+                                        <option value="1.5">1.5x</option>
+                                        <option value="2">2x</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Aspect Ratio</label>
+                                    <select id="ratio-select" class="premium-select">
+                                        <option value="contain">Fit (Original)</option>
+                                        <option value="cover">Fill (Zoom)</option>
+                                        <option value="fill">Stretch</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <h3>Audio</h3>
+                                <div class="settings-group">
+                                    <label>Audio Track</label>
+                                    <select id="audio-select" class="premium-select">
+                                        <option value="0">Default</option>
+                                    </select>
+                                </div>
+                                <div class="settings-group">
+                                    <label>Volume Boost</label>
+                                    <select id="boost-select" class="premium-select">
+                                        <option value="1.0">Normal (100%)</option>
+                                        <option value="1.3">Boost (130%)</option>
+                                        <option value="1.6">High (160%)</option>
+                                        <option value="2.0">Max (200%)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-section">
+                                <h3>Subtitles</h3>
+                                <div class="settings-group">
+                                    <label>Subtitle Track</label>
+                                    <select id="subtitle-select" class="premium-select">
+                                        <option value="off">Off</option>
+                                    </select>
+                                </div>
+                                <button id="load-subtitle-btn" class="import-btn">
+                                    <span>+</span> Import Subtitle (.srt, .vtt)
+                                </button>
+                                <input id="subtitle-file" type="file" accept=".vtt,.srt" hidden>
                             </div>
                         </div>
                     </div>

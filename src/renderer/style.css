@@ -158,52 +158,161 @@ video {
     object-fit: contain !important;
 }
 
-/* Settings Panel */
-.settings-container {
-    position: relative;
-}
-
-.settings-panel {
+/* Settings Side Panel Redesign */
+.settings-side-panel {
     position: absolute;
-    bottom: calc(100% + 15px);
+    top: 0;
     right: 0;
-    width: 240px;
-    background: rgba(15, 15, 15, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px;
+    width: 320px;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    transition: opacity var(--fast), transform var(--fast);
+    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.6);
+    transition: transform var(--smooth), opacity var(--smooth);
+    padding: 24px;
 }
 
-.settings-panel.hidden {
+.settings-side-panel.hidden {
+    transform: translateX(100%);
     opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
+    pointer-events: none;
 }
 
-.settings-item {
+.settings-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    margin-bottom: 32px;
 }
 
-.settings-item label {
-    font-size: 0.75rem;
-    font-weight: 700;
+.settings-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    line-height: 1;
+    padding: 0;
+    transition: color var(--fast);
 }
 
-.settings-item .clean-select {
-    width: 120px;
+.close-btn:hover {
+    color: var(--text);
+}
+
+.settings-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-right: 8px;
+}
+
+.settings-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-section h3 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-section h3 .icon {
+    font-style: normal;
+    font-size: 1.1rem;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.premium-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    appearance: none;
+    cursor: pointer;
+    transition: all var(--fast);
+}
+
+.premium-select:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--red-soft);
+}
+
+.premium-select:focus {
+    outline: none;
+    border-color: var(--red);
+    background: rgba(229, 9, 20, 0.1);
+}
+
+.import-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--fast);
+}
+
+.import-btn:hover {
+    background: var(--red-soft);
+    border-color: var(--red);
+    color: var(--text);
+    border-style: solid;
+}
+
+.import-btn span {
+    font-size: 1.2rem;
+    font-weight: 400;
 }
 
 .empty-state {
