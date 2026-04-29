@@ -1,3 +1,5 @@
+const path = require('path');
+
 const darwinResources = [
   {
     from: '.cache/bundled-binaries/node_modules/@ffmpeg-installer/darwin-arm64',

@@ -84,7 +84,8 @@ function installBinaries(packages) {
   const result = spawnSync(npm.command, args, {
     cwd: projectRoot,
     env: process.env,
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: process.platform === 'win32'
   });
 
   if (result.status !== 0) {
