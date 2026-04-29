@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Velmora | Watch Local. Feel Cinematic.</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -18,6 +19,8 @@
         <span class="logo-red">V</span>elmora
     </div>
     <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#releases">Releases</a>
         <a href="https://github.com/MidhunPalanisamy/velmora-media-player" target="_blank" class="github-link">GitHub</a>
     </div>
 </header>
@@ -36,12 +39,15 @@
             <!-- OS Specific Download Note -->
             <div id="downloadNote" class="note hidden">
                 <div class="note-content">
+                    <button class="modal-close-icon" onclick="closeNote(false)" aria-label="Close">
+                        <i data-lucide="x"></i>
+                    </button>
                     <div class="note-header">
                         <i data-lucide="shield-check" class="shield-icon"></i>
                         <h3>Before Opening</h3>
                     </div>
                     <div id="noteText" class="note-body"></div>
-                    <button class="close-btn" onclick="closeNote()">Got it, start download</button>
+                    <button class="close-btn" onclick="closeNote(true)">Got it, start download</button>
                 </div>
             </div>
         </div>
@@ -52,7 +58,7 @@
     </section>
 
     <section class="features" id="features">
-        <div class="section-header">
+        <div class="section-header reveal">
             <p class="eyebrow">Experience</p>
             <h2>Built for Performance</h2>
         </div>
@@ -75,8 +81,8 @@
                 <div class="icon-container">
                     <i data-lucide="captions"></i>
                 </div>
-                <h3>Subtitles</h3>
-                <p>Full support for multiple audio tracks and subtitles (SRT/VTT).</p>
+                <h3>Subtitle Styles</h3>
+                <p>Customize fonts, size, colors, and positioning for perfect readability.</p>
             </div>
             <div class="feature-card">
                 <div class="icon-container">
@@ -85,11 +91,25 @@
                 <h3>Audio Boost</h3>
                 <p>VLC-style audio amplification up to 200% with clear sound.</p>
             </div>
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="gauge"></i>
+                </div>
+                <h3>Speed Control</h3>
+                <p>Fine-tune your viewing with adjustable playback speed from 0.5x to 2.0x.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon-container">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3>Smart Search</h3>
+                <p>Quickly find any video in your library with instant title filtering.</p>
+            </div>
         </div>
     </section>
 
     <section class="releases" id="releases">
-        <div class="section-header">
+        <div class="section-header reveal">
             <h2>All Versions</h2>
             <p>Direct access to every stable release of Velmora.</p>
         </div>

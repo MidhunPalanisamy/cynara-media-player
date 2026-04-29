@@ -72,10 +72,26 @@ function setupDownloadButton(releases, os) {
     };
 }
 
+function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px;"></i>';
+        btn.classList.add('copied');
+        if (window.lucide) window.lucide.createIcons();
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('copied');
+            if (window.lucide) window.lucide.createIcons();
+        }, 2000);
+    });
+}
+
 function showMacNote(url) {
     pendingDownload = url;
     const note = document.getElementById("downloadNote");
     const text = document.getElementById("noteText");
+    const command = "xattr -rd com.apple.quarantine /Applications/Velmora.app";
 
     text.innerHTML = `
         <p>macOS may block the app on first launch because it's from an unverified developer.</p>
@@ -87,10 +103,16 @@ function showMacNote(url) {
         </ul>
         <b>Method 2 (Terminal)</b>
         <p>If the above doesn't work, run this command:</p>
-        <code>xattr -rd com.apple.quarantine /Applications/Velmora.app</code>
+        <code>
+            <span>${command}</span>
+            <button class="copy-btn" onclick="copyToClipboard('${command}', this)" title="Copy to clipboard">
+                <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+            </button>
+        </code>
     `;
 
     note.classList.remove("hidden");
+    if (window.lucide) window.lucide.createIcons();
 }
 
 function showWindowsNote(url) {
@@ -110,15 +132,17 @@ function showWindowsNote(url) {
     note.classList.remove("hidden");
 }
 
-function closeNote() {
+function closeNote(shouldDownload = false) {
     document.getElementById("downloadNote").classList.add("hidden");
-    if (pendingDownload) {
+    if (shouldDownload && pendingDownload) {
         const url = pendingDownload;
         pendingDownload = null;
         // Small delay for better UX after clicking "Got it"
         setTimeout(() => {
             window.location.href = url;
         }, 300);
+    } else {
+        pendingDownload = null;
     }
 }
 
@@ -143,18 +167,20 @@ function renderReleases(releases) {
         
         const assetsHtml = release.assets.map(asset => `
             <a href="${asset.browser_download_url}" class="asset-btn">
-                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                ${asset.name}
+                <span class="asset-name">${asset.name}</span>
+                <i data-lucide="download" style="width: 18px; height: 18px;"></i>
             </a>
         `).join("");
 
         releaseElement.innerHTML = `
-            <div class="release-info">
-                <h3>
-                    ${release.name || release.tag_name}
-                    ${index === 0 ? '<span class="release-tag">Latest</span>' : ''}
-                </h3>
-                <p class="release-date">Published on ${date}</p>
+            <div class="release-top">
+                <div class="release-info">
+                    <h3>
+                        ${release.name || release.tag_name}
+                        ${index === 0 ? '<span class="release-tag">Latest</span>' : ''}
+                    </h3>
+                    <p class="release-date">Published on ${date}</p>
+                </div>
             </div>
             <div class="release-assets">
                 ${assetsHtml}
@@ -169,8 +195,27 @@ function renderReleases(releases) {
     }
 }
 
+function scrollReveal() {
+    const observerOptions = {
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal, .grid').forEach(el => {
+        observer.observe(el);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     fetchReleases();
+    scrollReveal();
     if (window.lucide) {
         window.lucide.createIcons();
     }
