@@ -35,7 +35,10 @@ Select the appropriate build for your system from the [Releases Page](https://gi
 ### macOS
 1. Download the `.dmg` file and drag Velmora to your **Applications** folder.
 2. **First Launch:** Since the app is not yet code-signed, right-click the app and select **Open**, then click **Open** again in the dialog.
-3. *Alternative for advanced users:* `xattr -rd com.apple.quarantine /Applications/Velmora.app`
+3. *Alternative for advanced users:*
+ ```bash
+   xattr -rd com.apple.quarantine /Applications/Velmora.app
+```
 
 ### Windows
 1. Run the `.exe` installer.
